@@ -31,6 +31,14 @@
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "postedDate", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "deposits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

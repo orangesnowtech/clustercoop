@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run src/lib/ledger",
+    "test": "vitest run src/lib",
     "test:emulator": "firebase emulators:exec --only firestore --project demo-cluster \"vitest run test/emulator\""
   },
   "dependencies": {

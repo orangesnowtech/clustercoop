@@ -42,5 +42,11 @@ service cloud.firestore {
       allow read: if isStaff() || (signedIn() && request.auth.uid == uid);
       allow write: if false;
     }
+
+    // Deposits — owner or staff read; server-only (Admin SDK) writes.
+    match /deposits/{id} {
+      allow read: if isStaff() || ownsResource();
+      allow write: if false;
+    }
   }
 }
