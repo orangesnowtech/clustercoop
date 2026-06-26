@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "cluster-staging-6ed81",
+    "test": "cluster-staging-6ed81"
+  }
+}
