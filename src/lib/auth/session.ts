@@ -11,6 +11,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_MS } from "./constants";
+import { homeForRole } from "./routes";
 import { isRole, type Role } from "@/lib/roles";
 
 export interface SessionUser {
@@ -47,9 +48,15 @@ export async function requireUser(): Promise<SessionUser> {
   return user;
 }
 
-/** Require one of `allowed` roles; redirect to /login otherwise. */
+/**
+ * Require one of `allowed` roles. Unauthenticated users go to /login (via
+ * requireUser); an authenticated user with the wrong role is sent to their own
+ * home rather than the login page.
+ */
 export async function requireRole(allowed: readonly Role[]): Promise<SessionUser> {
   const user = await requireUser();
-  if (!user.role || !allowed.includes(user.role)) redirect("/login");
+  if (!user.role || !allowed.includes(user.role)) {
+    redirect(homeForRole(user.role));
+  }
   return user;
 }
