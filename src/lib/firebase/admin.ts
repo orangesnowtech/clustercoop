@@ -11,6 +11,8 @@
  * data collection) does not require the secret to be present.
  */
 import "server-only";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   cert,
   getApp,
@@ -24,19 +26,29 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage, type Storage } from "firebase-admin/storage";
 
 function getServiceAccount(): ServiceAccount {
+  // Priority 1: the env var (how production/App Hosting supplies it).
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) {
-    throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT is not set. Add it to .env.local (local) or " +
-        "Secret Manager (App Hosting). It must never be NEXT_PUBLIC_.",
-    );
+  if (raw) {
+    try {
+      return JSON.parse(raw) as ServiceAccount;
+    } catch {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT is not valid JSON. Store the service account " +
+          "key as a single-line JSON string.",
+      );
+    }
   }
+
+  // Priority 2 (local dev only): a gitignored firebaseServiceAccountKey.json
+  // at the project root. Never present in production.
   try {
-    return JSON.parse(raw) as ServiceAccount;
+    const file = join(process.cwd(), "firebaseServiceAccountKey.json");
+    return JSON.parse(readFileSync(file, "utf8")) as ServiceAccount;
   } catch {
     throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT is not valid JSON. Store the service account " +
-        "key as a single-line JSON string.",
+      "No Firebase admin credentials found. Set FIREBASE_SERVICE_ACCOUNT " +
+        "(Secret Manager / env) or place firebaseServiceAccountKey.json at the " +
+        "project root for local dev. It must never be NEXT_PUBLIC_.",
     );
   }
 }
