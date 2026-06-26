@@ -4,7 +4,11 @@
  * Built from FIREBASE_SERVICE_ACCOUNT (no NEXT_PUBLIC_ prefix). This module
  * must NEVER be imported into a Client Component or shipped to the browser —
  * it holds full admin credentials. Import only from Server Components, Route
- * Handlers, Server Actions, and middleware.
+ * Handlers, Server Actions, and middleware/proxy.
+ *
+ * Initialization is LAZY: the service account is only read when a getter is
+ * first called at runtime, so importing this module during `next build` (page
+ * data collection) does not require the secret to be present.
  */
 import "server-only";
 import {
@@ -37,11 +41,20 @@ function getServiceAccount(): ServiceAccount {
   }
 }
 
-const adminApp: App = getApps().length
-  ? getApp()
-  : initializeApp({ credential: cert(getServiceAccount()) });
+function getAdminApp(): App {
+  return getApps().length
+    ? getApp()
+    : initializeApp({ credential: cert(getServiceAccount()) });
+}
 
-export const adminAuth: Auth = getAuth(adminApp);
-export const adminDb: Firestore = getFirestore(adminApp);
-export const adminStorage: Storage = getStorage(adminApp);
-export { adminApp };
+export function getAdminAuth(): Auth {
+  return getAuth(getAdminApp());
+}
+
+export function getAdminDb(): Firestore {
+  return getFirestore(getAdminApp());
+}
+
+export function getAdminStorage(): Storage {
+  return getStorage(getAdminApp());
+}

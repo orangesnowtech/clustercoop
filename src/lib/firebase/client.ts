@@ -1,9 +1,13 @@
 /**
  * Firebase client SDK (browser-safe).
  *
- * Built from the six NEXT_PUBLIC_FIREBASE_* vars — all browser-safe and baked
- * into the bundle at build time. NEVER import the Admin SDK or a service
- * account here; this module runs in the browser.
+ * Built from the six NEXT_PUBLIC_FIREBASE_* vars — browser-safe and baked into
+ * the bundle at build time. NEVER import the Admin SDK or a service account
+ * here; this module runs in the browser.
+ *
+ * Initialization is LAZY via getters so that getAuth()/getFirestore() are only
+ * called in the browser (inside effects / event handlers), never during SSR or
+ * static prerender where the public env vars may be absent.
  */
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
@@ -19,10 +23,18 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Reuse the app across HMR / multiple imports instead of re-initializing.
-const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+function getClientApp(): FirebaseApp {
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
 
-export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
-export const storage: FirebaseStorage = getStorage(app);
-export { app };
+export function getFirebaseAuth(): Auth {
+  return getAuth(getClientApp());
+}
+
+export function getDb(): Firestore {
+  return getFirestore(getClientApp());
+}
+
+export function getStorageClient(): FirebaseStorage {
+  return getStorage(getClientApp());
+}
