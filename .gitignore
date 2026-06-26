@@ -44,3 +44,7 @@ next-env.d.ts
 # key files
 firebaseServiceAccountKey.json
 firebaseConfig.js
+
+# firebase emulator logs
+*-debug.log
+.firebase/

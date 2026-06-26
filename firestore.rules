@@ -1,0 +1,46 @@
+rules_version = '2';
+
+// Ledger is written ONLY via the Admin SDK (which bypasses these rules).
+// Client-SDK writes are denied everywhere; reads are role- and owner-scoped.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return request.auth.token.role; }
+    function isStaff() {
+      return signedIn() &&
+        role() in ['superadmin', 'admin', 'compliance', 'accounts', 'rm'];
+    }
+    function ownsResource() {
+      return signedIn() && resource.data.clientId == request.auth.uid;
+    }
+
+    // Chart of accounts — staff read all; a customer reads only their own subs.
+    match /accounts/{id} {
+      allow read: if isStaff() || ownsResource();
+      allow write: if false;
+    }
+
+    // Journal entries — staff read; never client-writable.
+    match /journalEntries/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
+    // Journal lines — immutable; staff read all, customers read only their own.
+    match /journalLines/{id} {
+      allow read: if isStaff() || ownsResource();
+      allow create, update, delete: if false;
+    }
+
+    // Idempotency guards — server-only, fully locked.
+    match /ledgerRefs/{id} {
+      allow read, write: if false;
+    }
+
+    // Client profile docs — owner or staff read; server-only writes.
+    match /clients/{uid} {
+      allow read: if isStaff() || (signedIn() && request.auth.uid == uid);
+      allow write: if false;
+    }
+  }
+}

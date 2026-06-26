@@ -9,6 +9,7 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { ensureClientAccounts } from "@/lib/ledger/accounts";
 
 export async function POST(req: Request) {
   let idToken: unknown;
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
         },
         { merge: true },
       );
+
+    // Provision the client's Client-Funds-Payable ledger sub-account.
+    await ensureClientAccounts(decoded.uid);
 
     return NextResponse.json({ role: "customer" });
   } catch {
