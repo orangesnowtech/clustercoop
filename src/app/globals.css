@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/*
+ * Cluster brand tokens (Tailwind v4 — CSS-first @theme).
+ * This is the "Tailwind config": every token below becomes a utility,
+ * e.g. --color-primary → bg-primary / text-primary / border-primary.
+ * Full reference: cluster-brand-guide.html
+ */
+@theme {
+  /* Brand */
+  --color-primary: #ff9900; /* Cluster Orange — actions/accents, used sparingly */
+  --color-primary-pressed: #e08600; /* Burnt Orange — hover/pressed */
+  --color-ink: #16181d; /* Near-black — structure & text */
+  --color-ink-soft: #2c2f36; /* Dark grey */
+  --color-coffee: #6f4e37; /* Coffee Brown — accent */
+  --color-coffee-deep: #4e3629; /* Espresso */
+  --color-surface: #fbfaf8; /* Off-white page surface */
+  --color-border: #e6e4df; /* Warm grey hairlines */
+
+  /* Ledger semantics — green/red ONLY for credit/debit, amber for pending */
+  --color-credit: #1e8e5a; /* Credit / deposit (+) */
+  --color-debit: #c8442b; /* Debit / withdrawal (−) */
+  --color-pending: #c98a00; /* Pending / KYC review */
+
+  /* Type — Space Grotesk (display), Inter (body), IBM Plex Mono (figures) */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, "Courier New", monospace;
+}
+
+:root {
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Financial figures should default to tabular mono for column alignment */
+.font-figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

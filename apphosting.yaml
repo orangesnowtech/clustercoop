@@ -1,0 +1,68 @@
+# Firebase App Hosting config.
+# Secret NAMES are identical across the TEST and LIVE Firebase projects; the
+# VALUES stored in each project's Secret Manager differ (test keys vs live keys).
+# Set each with: firebase apphosting:secrets:set <NAME>  (in both projects).
+#
+# Convention: NEXT_PUBLIC_* are browser-safe → availability [BUILD, RUNTIME];
+# server-only secrets → availability [RUNTIME] only (never in the browser bundle).
+runConfig:
+  minInstances: 0
+
+env:
+  # --- Firebase (browser-safe) ---
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    secret: NEXT_PUBLIC_FIREBASE_API_KEY
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    secret: NEXT_PUBLIC_FIREBASE_APP_ID
+    availability: [BUILD, RUNTIME]
+
+  # --- Firebase Admin (server-only) ---
+  - variable: FIREBASE_SERVICE_ACCOUNT
+    secret: FIREBASE_SERVICE_ACCOUNT
+    availability: [RUNTIME]
+
+  # --- Paystack ---
+  - variable: PAYSTACK_SECRET_KEY
+    secret: PAYSTACK_SECRET_KEY
+    availability: [RUNTIME]
+  - variable: NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+    secret: NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+    availability: [BUILD, RUNTIME]
+
+  # --- Sanity (read-only) ---
+  - variable: NEXT_PUBLIC_SANITY_PROJECT_ID
+    secret: NEXT_PUBLIC_SANITY_PROJECT_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SANITY_DATASET
+    secret: NEXT_PUBLIC_SANITY_DATASET
+    availability: [BUILD, RUNTIME]
+  - variable: SANITY_API_READ_TOKEN
+    secret: SANITY_API_READ_TOKEN
+    availability: [RUNTIME]
+
+  # --- MetaMap (KYC) ---
+  - variable: NEXT_PUBLIC_METAMAP_CLIENT_ID
+    secret: NEXT_PUBLIC_METAMAP_CLIENT_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_METAMAP_FLOW_ID
+    secret: NEXT_PUBLIC_METAMAP_FLOW_ID
+    availability: [BUILD, RUNTIME]
+  - variable: METAMAP_CLIENT_SECRET
+    secret: METAMAP_CLIENT_SECRET
+    availability: [RUNTIME]
+  - variable: METAMAP_WEBHOOK_SECRET
+    secret: METAMAP_WEBHOOK_SECRET
+    availability: [RUNTIME]
