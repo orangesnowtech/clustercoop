@@ -48,5 +48,11 @@ service cloud.firestore {
       allow read: if isStaff() || ownsResource();
       allow write: if false;
     }
+
+    // Withdrawals — owner or staff read; server-only (Admin SDK) writes.
+    match /withdrawals/{id} {
+      allow read: if isStaff() || ownsResource();
+      allow write: if false;
+    }
   }
 }

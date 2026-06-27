@@ -60,6 +60,25 @@ export async function postEntry(input: PostEntryInput): Promise<PostResult> {
       accountById.set(id, acct);
     });
 
+    // Sufficiency preconditions (e.g. withdrawals): assert atomically in the
+    // read phase against the freshly-read balance. Because the same accounts are
+    // also written below, concurrent posts serialize and the loser re-checks.
+    for (const pre of input.preconditions ?? []) {
+      const acct = accountById.get(pre.accountId);
+      if (!acct) {
+        throw new LedgerError(
+          "precondition_account",
+          `Precondition account ${pre.accountId} is not part of this entry.`,
+        );
+      }
+      if (acct.cachedBalanceKobo < pre.minBalanceKobo) {
+        throw new LedgerError(
+          "insufficient_funds",
+          `Insufficient funds: account ${pre.accountId} balance ${acct.cachedBalanceKobo} is below the required ${pre.minBalanceKobo}.`,
+        );
+      }
+    }
+
     // Aggregate signed balance deltas per account.
     const deltaByAccount = new Map<string, number>();
     for (const line of lines) {

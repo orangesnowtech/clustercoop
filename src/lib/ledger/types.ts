@@ -87,6 +87,13 @@ export interface PostLineInput {
   memo?: string;
 }
 
+/** Optional balance guard asserted atomically in the posting transaction. */
+export interface AccountPrecondition {
+  accountId: string;
+  /** The account's cached balance must be >= this before posting. */
+  minBalanceKobo: Kobo;
+}
+
 export interface PostEntryInput {
   /** When set, makes the posting idempotent (safe webhook/retry). */
   idempotencyKey?: string;
@@ -97,6 +104,12 @@ export interface PostEntryInput {
   createdBy: string;
   createdByRole: Role | "system";
   lines: PostLineInput[];
+  /**
+   * Sufficiency guards checked in the read phase (e.g. a withdrawal asserting
+   * the client's balance covers the debit). Each account must be one the entry
+   * already touches. Throws LedgerError("insufficient_funds") if unmet.
+   */
+  preconditions?: AccountPrecondition[];
 }
 
 export interface PostResult {
