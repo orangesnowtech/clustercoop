@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sidebar } from "@/components/nav/Sidebar";
 import { SignOutButton } from "@/components/SignOutButton";
+import { Logo } from "@/components/Logo";
 import { navItemsFor } from "@/lib/nav";
 import { ROLE_DEFS } from "@/lib/roles";
 import type { SessionUser } from "@/lib/auth/session";
@@ -24,22 +25,17 @@ export function AppShell({
   return (
     <div className="flex flex-1">
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-white p-4 md:flex">
-        <Link
-          href={home}
-          className="mb-6 px-3 font-display text-xl font-bold tracking-tight text-ink"
-        >
-          cluster
+        <Link href={home} className="mb-6 px-3" aria-label="Cluster home">
+          <Logo className="h-7 w-auto" priority />
         </Link>
         <Sidebar items={items} />
       </aside>
 
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-white px-6 py-3">
-          <span className="text-sm text-ink-soft md:hidden">
-            <Link href={home} className="font-display font-bold text-ink">
-              cluster
-            </Link>
-          </span>
+          <Link href={home} className="md:hidden" aria-label="Cluster home">
+            <Logo className="h-6 w-auto" />
+          </Link>
           <div className="ml-auto flex items-center gap-4">
             <div className="text-right text-sm leading-tight">
               <div className="text-ink">{user.email}</div>

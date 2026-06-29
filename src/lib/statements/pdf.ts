@@ -3,6 +3,8 @@
  * JS, no font-file reads; safe under Next bundling). Simple manual table.
  */
 import "server-only";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { koboToNaira } from "@/lib/money";
 import type { StatementRow, StatementSummary } from "./rows";
@@ -46,9 +48,23 @@ export async function renderStatementPdf(input: StatementPdfInput): Promise<Uint
     opts: { size?: number; font?: typeof font; color?: typeof INK } = {},
   ) => page.drawText(s, { x, y: yy, size: opts.size ?? 9, font: opts.font ?? font, color: opts.color ?? INK });
 
-  // Header
-  text("cluster", margin, y, { size: 22, font: bold, color: INK });
-  page.drawRectangle({ x: margin + 78, y: y + 3, width: 8, height: 8, color: ORANGE });
+  // Header — embed the logo, falling back to the text wordmark if it can't be
+  // read at runtime (e.g. public/ absent in some deploy targets).
+  let logoDrawn = false;
+  try {
+    const logoBytes = readFileSync(join(process.cwd(), "public", "logo.png"));
+    const logo = await doc.embedPng(logoBytes);
+    const logoH = 26;
+    const logoW = (logo.width / logo.height) * logoH;
+    page.drawImage(logo, { x: margin, y: y - 6, width: logoW, height: logoH });
+    logoDrawn = true;
+  } catch {
+    // fall through to the text wordmark
+  }
+  if (!logoDrawn) {
+    text("cluster", margin, y, { size: 22, font: bold, color: INK });
+    page.drawRectangle({ x: margin + 78, y: y + 3, width: 8, height: 8, color: ORANGE });
+  }
   text("Account Statement", width - margin - 130, y + 6, { size: 12, font: bold, color: MUTED });
   y -= 28;
   text(`Client: ${input.client.email ?? input.client.uid}`, margin, y, { color: MUTED });
