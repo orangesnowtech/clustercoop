@@ -1,7 +1,9 @@
 import { requireRole } from "@/lib/auth/session";
 import { getClientLedger } from "@/lib/ledger/statements";
 import { getClientDeposits } from "@/lib/deposits/pending";
+import { getClientKyc } from "@/lib/kyc/queries";
 import { formatKobo } from "@/lib/money";
+import { KycGate } from "@/components/kyc/KycGate";
 import { DepositForm } from "@/components/deposit/DepositForm";
 
 const statusStyles: Record<string, string> = {
@@ -12,9 +14,10 @@ const statusStyles: Record<string, string> = {
 
 export default async function DepositPage() {
   const user = await requireRole(["customer"]);
-  const [{ balanceKobo }, deposits] = await Promise.all([
+  const [{ balanceKobo }, deposits, kyc] = await Promise.all([
     getClientLedger(user.uid),
     getClientDeposits(user.uid),
+    getClientKyc(user.uid),
   ]);
 
   return (
@@ -25,6 +28,8 @@ export default async function DepositPage() {
       <p className="mb-8 text-sm text-ink-soft">
         Fund your account securely via Paystack.
       </p>
+
+      <KycGate status={kyc.kycStatus} />
 
       <section className="mb-8 rounded-2xl border border-border bg-white p-6">
         <p className="text-sm text-ink-soft">Current balance</p>

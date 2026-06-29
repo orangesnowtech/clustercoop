@@ -6,11 +6,9 @@
  * NEXT_PUBLIC_METAMAP_* values; verification RESULTS arrive via a signed webhook
  * which must be verified here with METAMAP_WEBHOOK_SECRET before any KYC status
  * is written to Firestore for Compliance to review.
- *
- * This is a step-1 scaffold: the signature/verification logic is stubbed and
- * fleshed out when the KYC flow is built (step 5).
  */
 import "server-only";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 /** Browser-safe SDK values for rendering the MetaMap button. */
 export function metamapPublicConfig() {
@@ -20,14 +18,36 @@ export function metamapPublicConfig() {
 }
 
 /**
- * Verify a MetaMap webhook signature. TODO (step 5): implement the real HMAC
- * check against METAMAP_WEBHOOK_SECRET per MetaMap's webhook docs. Until then
- * this returns false so nothing is trusted by accident.
+ * Verify a MetaMap webhook signature: the `x-signature` header must equal
+ * HMAC_SHA256(METAMAP_WEBHOOK_SECRET, rawBody). Timing-safe; false on any
+ * missing/malformed input. (Mirrors the Paystack webhook verify, SHA256.)
  */
-export function verifyMetamapWebhook(_rawBody: string, _signature: string | null): boolean {
+export function verifyMetamapWebhook(
+  rawBody: string,
+  signature: string | null | undefined,
+): boolean {
   const secret = process.env.METAMAP_WEBHOOK_SECRET;
   if (!secret) {
     throw new Error("METAMAP_WEBHOOK_SECRET is not set (server-only).");
   }
-  return false;
+  if (!signature) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const a = Buffer.from(expected, "hex");
+  const b = Buffer.from(signature, "hex");
+  if (a.length !== b.length || a.length === 0) return false;
+  return timingSafeEqual(a, b);
+}
+
+/**
+ * Decode the base64 `metadata` blob the button echoes back and extract our
+ * nonce. Untrusted input — returns null on anything malformed.
+ */
+export function decodeMetadataNonce(metadataB64: string | null | undefined): string | null {
+  if (!metadataB64) return null;
+  try {
+    const json = JSON.parse(Buffer.from(metadataB64, "base64").toString("utf8"));
+    return typeof json?.nonce === "string" ? json.nonce : null;
+  } catch {
+    return null;
+  }
 }

@@ -37,6 +37,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // KYC session nonces — server-only trust anchor, fully locked.
+    match /kycSessions/{nonce} {
+      allow read, write: if false;
+    }
+
     // Client profile docs — owner or staff read; server-only writes.
     match /clients/{uid} {
       allow read: if isStaff() || (signedIn() && request.auth.uid == uid);

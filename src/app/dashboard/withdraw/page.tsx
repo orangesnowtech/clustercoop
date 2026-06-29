@@ -3,6 +3,8 @@ import { getClientLedger } from "@/lib/ledger/statements";
 import { formatKobo } from "@/lib/money";
 import { computeAvailableKobo } from "@/lib/withdrawals/available";
 import { getClientWithdrawals, getLiveWithdrawals } from "@/lib/withdrawals/queries";
+import { getClientKyc } from "@/lib/kyc/queries";
+import { KycGate } from "@/components/kyc/KycGate";
 import { WithdrawForm } from "@/components/withdrawal/WithdrawForm";
 import { WithdrawalActions } from "@/components/withdrawal/WithdrawalActions";
 
@@ -16,10 +18,11 @@ const statusStyles: Record<string, string> = {
 
 export default async function WithdrawPage() {
   const user = await requireRole(["customer"]);
-  const [{ balanceKobo }, live, withdrawals] = await Promise.all([
+  const [{ balanceKobo }, live, withdrawals, kyc] = await Promise.all([
     getClientLedger(user.uid),
     getLiveWithdrawals(user.uid),
     getClientWithdrawals(user.uid),
+    getClientKyc(user.uid),
   ]);
   const availableKobo = computeAvailableKobo(balanceKobo, live);
 
@@ -31,6 +34,8 @@ export default async function WithdrawPage() {
       <p className="mb-8 text-sm text-ink-soft">
         Requests are reviewed by Compliance, then paid out by Accounts.
       </p>
+
+      <KycGate status={kyc.kycStatus} />
 
       <section className="mb-8 grid grid-cols-2 gap-4">
         <div className="rounded-2xl border border-border bg-white p-6">

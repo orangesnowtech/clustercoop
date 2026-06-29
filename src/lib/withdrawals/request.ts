@@ -13,6 +13,7 @@ import { LedgerError } from "@/lib/ledger/types";
 import type { Kobo } from "@/lib/money";
 import { computeAvailableKobo, validateWithdrawalRequest } from "./available";
 import { getLiveWithdrawals, WITHDRAWALS_COLLECTION } from "./queries";
+import { assertCanWithdraw } from "@/lib/kyc/gate";
 import type { WithdrawalDestination } from "./types";
 
 export async function createWithdrawalRequest(input: {
@@ -20,6 +21,8 @@ export async function createWithdrawalRequest(input: {
   amountKobo: Kobo;
   destination: WithdrawalDestination;
 }): Promise<{ id: string }> {
+  // KYC gate (reject before the request is created).
+  await assertCanWithdraw(input.uid);
   await ensureClientAccounts(input.uid);
 
   const [{ balanceKobo }, live] = await Promise.all([
