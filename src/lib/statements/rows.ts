@@ -28,6 +28,8 @@ export interface StatementSummary {
 const TYPE_LABEL: Record<string, string> = {
   deposit: "Deposit",
   withdrawal: "Withdrawal",
+  allocation: "Investment",
+  redemption: "Redemption",
   valuation: "Returns",
   fee: "Fee",
   reversal: "Reversal",

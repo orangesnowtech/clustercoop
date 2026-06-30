@@ -14,6 +14,7 @@ export const ACCOUNT_CODES = {
   SUSPENSE: "1900",
   CLIENT_FUNDS_PAYABLE: "2000", // control → per-client subs "2000:<uid>"
   WITHDRAWALS_PAYABLE: "2100",
+  CLIENT_HOLDINGS: "2300", // control → per-client-per-product subs "2300:<uid>:<productId>"
   OWNERS_EQUITY: "3000",
   RETAINED_EARNINGS: "3900",
   INVESTMENT_INCOME: "4000",
@@ -36,6 +37,7 @@ export const SEED_ACCOUNTS: SeedAccount[] = [
   { code: "1900", name: "Suspense / Unidentified receipts", class: "asset", isControl: false },
   { code: "2000", name: "Client Funds Payable", class: "liability", isControl: true },
   { code: "2100", name: "Withdrawals Payable", class: "liability", isControl: false },
+  { code: "2300", name: "Client Investment Holdings", class: "liability", isControl: true },
   { code: "3000", name: "Owner's Equity", class: "equity", isControl: false },
   { code: "3900", name: "Retained Earnings", class: "equity", isControl: false },
   { code: "4000", name: "Investment Income / Returns", class: "income", isControl: false },
@@ -74,6 +76,29 @@ export function clientSubAccountRecord(uid: string): Account {
     normalBalance: "credit",
     parentId: ACCOUNT_CODES.CLIENT_FUNDS_PAYABLE,
     clientId: uid,
+    productId: null,
+    isControl: false,
+    active: true,
+    currency: "NGN",
+    cachedBalanceKobo: 0,
+  };
+}
+
+/** The Firestore doc id of a client's holding sub-account for a product. */
+export function holdingSubAccountId(uid: string, productId: string): string {
+  return `${ACCOUNT_CODES.CLIENT_HOLDINGS}:${uid}:${productId}`;
+}
+
+/** Build a per-client-per-product Client-Investment-Holdings sub-account. */
+export function holdingSubAccountRecord(uid: string, productId: string): Account {
+  return {
+    code: holdingSubAccountId(uid, productId),
+    name: `Client Holdings — ${uid} — ${productId}`,
+    class: "liability",
+    normalBalance: "credit",
+    parentId: ACCOUNT_CODES.CLIENT_HOLDINGS,
+    clientId: uid,
+    productId,
     isControl: false,
     active: true,
     currency: "NGN",

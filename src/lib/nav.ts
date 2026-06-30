@@ -27,6 +27,7 @@ export const CUSTOMER_NAV: NavItem[] = [
   { label: "Portfolio", href: "/dashboard", roles: ["customer"] },
   { label: "Statements", href: "/dashboard/statements", roles: ["customer"] },
   { label: "Transactions", href: "/dashboard/transactions", roles: ["customer"] },
+  { label: "Invest", href: "/dashboard/invest", roles: ["customer"] },
   { label: "Deposit", href: "/dashboard/deposit", roles: ["customer"] },
   { label: "Withdraw", href: "/dashboard/withdraw", roles: ["customer"] },
   { label: "Verify ID", href: "/dashboard/verify", roles: ["customer"] },

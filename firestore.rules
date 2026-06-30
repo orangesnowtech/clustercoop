@@ -59,5 +59,23 @@ service cloud.firestore {
       allow read: if isStaff() || ownsResource();
       allow write: if false;
     }
+
+    // Products — any signed-in user may read (to invest); server-only writes.
+    match /products/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Holdings — owner or staff read; server-only writes. (uid field, not clientId.)
+    match /holdings/{id} {
+      allow read: if isStaff() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // Valuation runs — staff read; server-only writes.
+    match /valuationRuns/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
   }
 }

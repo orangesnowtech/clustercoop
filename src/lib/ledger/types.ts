@@ -24,6 +24,8 @@ export type EntryStatus = "posted" | "reversed" | "reversal";
 export type EntryType =
   | "deposit"
   | "withdrawal"
+  | "allocation"
+  | "redemption"
   | "valuation"
   | "fee"
   | "manual"
@@ -37,6 +39,8 @@ export interface Account {
   normalBalance: NormalBalance;
   parentId: string | null;
   clientId: string | null;
+  /** Set on per-product holding sub-accounts (2300:<uid>:<productId>). */
+  productId?: string | null;
   /** Roll-up parents are never posted to directly. */
   isControl: boolean;
   active: boolean;
