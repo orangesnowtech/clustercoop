@@ -35,9 +35,12 @@ export async function listBanks(): Promise<PaystackBank[]> {
     });
     const json = await res.json();
     if (!Array.isArray(json?.data)) return [];
-    return (json.data as Array<{ name: string; code: string }>)
-      .map((b) => ({ name: b.name, code: b.code }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    // Paystack can return several entries sharing one code — keep one per code.
+    const byCode = new Map<string, PaystackBank>();
+    for (const b of json.data as Array<{ name: string; code: string }>) {
+      if (b.code && !byCode.has(b.code)) byCode.set(b.code, { name: b.name, code: b.code });
+    }
+    return [...byCode.values()].sort((a, b) => a.name.localeCompare(b.name));
   } catch {
     return [];
   }
