@@ -7,6 +7,7 @@ import { LedgerError } from "@/lib/ledger/types";
 
 export interface BankDetails {
   bankName: string;
+  bankCode?: string | null; // Paystack bank code — for future transfer payouts
   accountNumber: string;
   accountName: string;
 }
@@ -56,6 +57,8 @@ export function validateOnboarding(input: ClientProfileInput): ClientProfileInpu
     throw new LedgerError("bad_account", "Account number must be 10 digits.");
   }
 
+  const bankCode = (input.bank?.bankCode ?? "").trim() || null;
+
   return {
     firstName,
     middleName,
@@ -64,6 +67,6 @@ export function validateOnboarding(input: ClientProfileInput): ClientProfileInpu
     address,
     nin,
     bvn,
-    bank: { bankName, accountNumber, accountName },
+    bank: { bankName, bankCode, accountNumber, accountName },
   };
 }

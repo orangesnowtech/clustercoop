@@ -15,6 +15,34 @@ export function paystackPublicConfig() {
   return { publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY };
 }
 
+export interface PaystackBank {
+  name: string;
+  code: string;
+}
+
+/**
+ * Nigerian bank list from Paystack (name + transfer code). Cached a day —
+ * banks rarely change. Returns [] if the secret is missing or the call fails
+ * (the form then falls back to a free-text bank name).
+ */
+export async function listBanks(): Promise<PaystackBank[]> {
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+  if (!secret) return [];
+  try {
+    const res = await fetch("https://api.paystack.co/bank?currency=NGN", {
+      headers: { Authorization: `Bearer ${secret}` },
+      next: { revalidate: 86400 },
+    });
+    const json = await res.json();
+    if (!Array.isArray(json?.data)) return [];
+    return (json.data as Array<{ name: string; code: string }>)
+      .map((b) => ({ name: b.name, code: b.code }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return [];
+  }
+}
+
 export interface PaystackVerifyResult {
   status: string; // "success" | "failed" | "abandoned" | ...
   reference: string;

@@ -31,7 +31,7 @@ describe("onboarding profile", () => {
     await saveOnboarding(UID, PROFILE);
     expect(await isOnboarded(UID)).toBe(true);
     const bank = await getVerifiedBank(UID);
-    expect(bank).toEqual(PROFILE.bank);
+    expect(bank).toMatchObject(PROFILE.bank);
   });
 
   it("validation rejects a bad NIN", async () => {
