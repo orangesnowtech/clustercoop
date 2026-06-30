@@ -42,6 +42,7 @@ export async function POST(req: Request) {
       eventName: String(body.eventName ?? ""),
       verdict: readVerdict(body),
       verificationId: (body.verificationId ?? body.identityId ?? null) as string | null,
+      resource: (body.resource ?? null) as string | null,
     });
   } catch {
     return NextResponse.json({ error: "processing failed" }, { status: 500 });

@@ -14,16 +14,24 @@ import type { Kobo } from "@/lib/money";
 import { computeAvailableKobo, validateWithdrawalRequest } from "./available";
 import { getLiveWithdrawals, WITHDRAWALS_COLLECTION } from "./queries";
 import { assertCanWithdraw } from "@/lib/kyc/gate";
-import type { WithdrawalDestination } from "./types";
+import { getVerifiedBank } from "@/lib/clients/profile";
 
 export async function createWithdrawalRequest(input: {
   uid: string;
   amountKobo: Kobo;
-  destination: WithdrawalDestination;
 }): Promise<{ id: string }> {
   // KYC gate (reject before the request is created).
   await assertCanWithdraw(input.uid);
   await ensureClientAccounts(input.uid);
+
+  // Pay out ONLY to the customer's verified bank account from onboarding.
+  const destination = await getVerifiedBank(input.uid);
+  if (!destination) {
+    throw new LedgerError(
+      "no_bank",
+      "No verified bank account on file. Complete onboarding first.",
+    );
+  }
 
   const [{ balanceKobo }, live] = await Promise.all([
     getClientLedger(input.uid),
@@ -45,7 +53,7 @@ export async function createWithdrawalRequest(input: {
       uid: input.uid,
       clientId: input.uid,
       amountKobo: input.amountKobo,
-      destination: input.destination,
+      destination,
       status: "requested",
       requestedBy: input.uid,
       availableAtRequestKobo: availableKobo,

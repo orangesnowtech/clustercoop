@@ -39,12 +39,14 @@ beforeEach(async () => {
   await clearEmulator();
   await seedChart();
   await ensureClientAccounts(UID);
+  // Withdrawals pay to the verified bank on the client profile.
+  await getAdminDb().collection("clients").doc(UID).set({ uid: UID, profile: { bank: DEST } });
 });
 
 describe("withdrawal lifecycle", () => {
   it("request → approve → post debits the balance exactly once", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000 });
     await approveWithdrawal(id, "comp1");
     const r = await postWithdrawal(id, ACCOUNTANT);
 
@@ -62,7 +64,7 @@ describe("withdrawal lifecycle", () => {
 
   it("is idempotent: double-post credits once", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000 });
     await approveWithdrawal(id, "comp1");
     const first = await postWithdrawal(id, ACCOUNTANT);
     const second = await postWithdrawal(id, ACCOUNTANT);
@@ -75,15 +77,15 @@ describe("withdrawal lifecycle", () => {
 describe("overdraw prevention", () => {
   it("rejects a second request that exceeds available (multi-pending)", async () => {
     await creditClient(100_000);
-    await createWithdrawalRequest({ uid: UID, amountKobo: 60_000, destination: DEST });
+    await createWithdrawalRequest({ uid: UID, amountKobo: 60_000 });
     await expect(
-      createWithdrawalRequest({ uid: UID, amountKobo: 60_000, destination: DEST }),
+      createWithdrawalRequest({ uid: UID, amountKobo: 60_000 }),
     ).rejects.toThrow(/available balance/i);
   });
 
   it("rejects a request when balance is zero", async () => {
     await expect(
-      createWithdrawalRequest({ uid: UID, amountKobo: 10_000, destination: DEST }),
+      createWithdrawalRequest({ uid: UID, amountKobo: 10_000 }),
     ).rejects.toThrow(/available balance/i);
   });
 
@@ -105,13 +107,13 @@ describe("overdraw prevention", () => {
 describe("state machine guards", () => {
   it("cannot post a requested (un-approved) withdrawal", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000 });
     await expect(postWithdrawal(id, ACCOUNTANT)).rejects.toThrow(/approved/i);
   });
 
   it("reject posts nothing and leaves the balance untouched", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000 });
     await rejectWithdrawal(id, "comp1", "Suspicious destination");
     const doc = (await getAdminDb().collection(WITHDRAWALS_COLLECTION).doc(id).get()).data()!;
     expect(doc.status).toBe("rejected");
@@ -121,7 +123,7 @@ describe("state machine guards", () => {
 
   it("owner can cancel while requested; a non-owner cannot", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 40_000 });
     await expect(cancelWithdrawal(id, "intruder")).rejects.toThrow(/not your/i);
     await cancelWithdrawal(id, UID);
     const doc = (await getAdminDb().collection(WITHDRAWALS_COLLECTION).doc(id).get()).data()!;
@@ -130,14 +132,14 @@ describe("state machine guards", () => {
 
   it("cancelling frees the reservation (available rises again)", async () => {
     await creditClient(100_000);
-    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 100_000, destination: DEST });
+    const { id } = await createWithdrawalRequest({ uid: UID, amountKobo: 100_000 });
     // Available is now 0; a new request fails...
     await expect(
-      createWithdrawalRequest({ uid: UID, amountKobo: 10_000, destination: DEST }),
+      createWithdrawalRequest({ uid: UID, amountKobo: 10_000 }),
     ).rejects.toThrow();
     await cancelWithdrawal(id, UID);
     // ...and succeeds after cancelling.
-    const { id: id2 } = await createWithdrawalRequest({ uid: UID, amountKobo: 10_000, destination: DEST });
+    const { id: id2 } = await createWithdrawalRequest({ uid: UID, amountKobo: 10_000 });
     expect(id2).toBeTruthy();
   });
 });

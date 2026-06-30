@@ -15,6 +15,7 @@ const completed = (nonce: string | null, verdict = "verified") => ({
   eventName: "verification_completed",
   verdict: verdict as "verified" | "rejected" | "reviewNeeded",
   verificationId: "ver_123",
+  resource: "https://api.getmati.com/v1/verifications/ver_123",
 });
 
 beforeEach(async () => {
@@ -43,7 +44,7 @@ describe("recordKycWebhook", () => {
   });
 
   it("ignores non-terminal events and unknown nonces", async () => {
-    expect((await recordKycWebhook({ nonce: "x", eventName: "verification_started", verdict: null, verificationId: null })).applied).toBe(false);
+    expect((await recordKycWebhook({ nonce: "x", eventName: "verification_started", verdict: null, verificationId: null, resource: null })).applied).toBe(false);
     expect((await recordKycWebhook(completed("no-such-nonce"))).applied).toBe(false);
   });
 

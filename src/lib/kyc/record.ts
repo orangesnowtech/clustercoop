@@ -18,6 +18,7 @@ export interface KycWebhookInput {
   eventName: string;
   verdict: MetamapVerdict | null;
   verificationId: string | null;
+  resource: string | null;
 }
 
 export interface KycWebhookResult {
@@ -57,6 +58,7 @@ export async function recordKycWebhook(
         kycStatus: "in_review",
         metamapVerdict: input.verdict,
         verificationId: input.verificationId,
+        metamapResource: input.resource ?? null,
         kycUpdatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },

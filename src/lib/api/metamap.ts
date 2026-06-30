@@ -51,3 +51,63 @@ export function decodeMetadataNonce(metadataB64: string | null | undefined): str
     return null;
   }
 }
+
+export interface MetamapField {
+  label: string;
+  value: string;
+}
+
+/** Flatten MetaMap's verification documents into label/value pairs. */
+function normalizeMetamap(data: unknown): { fields: MetamapField[] } {
+  const out: MetamapField[] = [];
+  const docs = (data as { documents?: unknown })?.documents;
+  if (Array.isArray(docs)) {
+    for (const d of docs) {
+      const fields = (d as { fields?: Record<string, unknown> })?.fields ?? {};
+      for (const [k, v] of Object.entries(fields)) {
+        const value =
+          v && typeof v === "object" && "value" in v
+            ? (v as { value: unknown }).value
+            : v;
+        if (value != null && value !== "") out.push({ label: k, value: String(value) });
+      }
+    }
+  }
+  return { fields: out };
+}
+
+/**
+ * Fetch a completed verification's extracted fields from MetaMap (OAuth
+ * client-credentials → GET the resource URL the webhook gave us). Returns null
+ * if METAMAP_CLIENT_SECRET / resource are missing or the call fails — the
+ * compliance UI then shows "unavailable".
+ */
+export async function fetchMetamapVerification(
+  resourceUrl: string | null | undefined,
+): Promise<{ fields: MetamapField[] } | null> {
+  const clientId = process.env.NEXT_PUBLIC_METAMAP_CLIENT_ID;
+  const clientSecret = process.env.METAMAP_CLIENT_SECRET;
+  if (!resourceUrl || !clientId || !clientSecret) return null;
+  try {
+    const tokenRes = await fetch("https://api.getmati.com/oauth", {
+      method: "POST",
+      headers: {
+        Authorization:
+          "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+      cache: "no-store",
+    });
+    const token = (await tokenRes.json())?.access_token;
+    if (!token) return null;
+    const res = await fetch(resourceUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return normalizeMetamap(await res.json());
+  } catch {
+    return null;
+  }
+}

@@ -23,6 +23,7 @@ export async function listKycInReview(limit = 100): Promise<KycQueueItem[]> {
       kycStatus: data.kycStatus as KycStatus,
       metamapVerdict: data.metamapVerdict ?? null,
       verificationId: data.verificationId ?? null,
+      metamapResource: data.metamapResource ?? null,
       reviewedBy: data.reviewedBy ?? null,
       rejectionReason: data.rejectionReason ?? null,
     };
@@ -37,6 +38,7 @@ export async function getClientKyc(uid: string): Promise<ClientKyc> {
     kycStatus: (data.kycStatus as KycStatus) ?? "pending",
     metamapVerdict: data.metamapVerdict ?? null,
     verificationId: data.verificationId ?? null,
+    metamapResource: data.metamapResource ?? null,
     reviewedBy: data.reviewedBy ?? null,
     rejectionReason: data.rejectionReason ?? null,
   };

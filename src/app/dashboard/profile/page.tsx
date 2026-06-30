@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/session";
 import { getClientKyc } from "@/lib/kyc/queries";
+import { getClientProfile } from "@/lib/clients/profile";
 import { listClientDocuments } from "@/lib/documents/storage";
 import { AccountSection } from "@/components/profile/AccountSection";
 import { DocumentsManager } from "@/components/profile/DocumentsManager";
@@ -31,9 +32,10 @@ const KYC_COPY: Record<string, { title: string; body: string; tone: string }> = 
 
 export default async function ProfilePage() {
   const user = await requireRole(["customer"]);
-  const [kyc, documents] = await Promise.all([
+  const [kyc, documents, profile] = await Promise.all([
     getClientKyc(user.uid),
     listClientDocuments(user.uid),
+    getClientProfile(user.uid),
   ]);
   const copy = KYC_COPY[kyc.kycStatus] ?? KYC_COPY.pending;
   const showButton = kyc.kycStatus === "pending" || kyc.kycStatus === "rejected";
@@ -45,6 +47,31 @@ export default async function ProfilePage() {
 
       <div className="flex flex-col gap-6">
         <AccountSection email={user.email} memberSince={null} />
+
+        {profile && (
+          <section className="rounded-2xl border border-border bg-white p-6">
+            <h2 className="mb-4 font-display text-lg font-semibold text-ink">
+              Personal details
+            </h2>
+            <dl className="grid grid-cols-[140px_1fr] gap-y-2 text-sm">
+              <dt className="text-ink-soft">Name</dt>
+              <dd className="text-ink">
+                {[profile.firstName, profile.middleName, profile.lastName]
+                  .filter(Boolean)
+                  .join(" ")}
+              </dd>
+              <dt className="text-ink-soft">Phone</dt>
+              <dd className="text-ink">{profile.phone}</dd>
+              <dt className="text-ink-soft">Address</dt>
+              <dd className="text-ink">{profile.address}</dd>
+              <dt className="text-ink-soft">Bank</dt>
+              <dd className="text-ink">
+                {profile.bank?.bankName} · ••••{profile.bank?.accountNumber?.slice(-4)} ·{" "}
+                {profile.bank?.accountName}
+              </dd>
+            </dl>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-border bg-white p-6">
           <h2 className="mb-3 font-display text-lg font-semibold text-ink">

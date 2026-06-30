@@ -1,29 +1,24 @@
-/** Request a withdrawal. Customer only. Pays to the verified bank on file. */
+/** Submit onboarding KYC profile. Customer only. */
 import { NextResponse } from "next/server";
 import { apiRequireRole } from "@/lib/auth/api";
-import { isValidKobo } from "@/lib/money";
 import { LedgerError } from "@/lib/ledger/types";
-import { createWithdrawalRequest } from "@/lib/withdrawals/request";
+import { saveOnboarding } from "@/lib/clients/profile";
+import type { ClientProfileInput } from "@/lib/onboarding/validate";
 
 export async function POST(req: Request) {
   const { user, error } = await apiRequireRole(["customer"]);
   if (error) return error;
 
-  let body: { amountKobo?: number };
+  let body: ClientProfileInput;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  const { amountKobo } = body;
-  if (typeof amountKobo !== "number" || !isValidKobo(amountKobo) || amountKobo <= 0) {
-    return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-  }
-
   try {
-    const { id } = await createWithdrawalRequest({ uid: user.uid, amountKobo });
-    return NextResponse.json({ id });
+    await saveOnboarding(user.uid, body);
+    return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof LedgerError) {
       return NextResponse.json({ error: e.message }, { status: 400 });

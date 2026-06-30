@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth/session";
 import { listKycInReview } from "@/lib/kyc/queries";
-import { KycReviewActions } from "@/components/kyc/KycReviewActions";
 
 const verdictStyles: Record<string, string> = {
   verified: "bg-credit/10 text-credit",
@@ -33,7 +33,7 @@ export default async function KycPage() {
                 <th className="px-4 py-3 font-medium">Client</th>
                 <th className="px-4 py-3 font-medium">MetaMap verdict</th>
                 <th className="px-4 py-3 font-medium">Verification</th>
-                <th className="px-4 py-3 text-right font-medium">Decision</th>
+                <th className="px-4 py-3 text-right font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -53,8 +53,13 @@ export default async function KycPage() {
                   <td className="px-4 py-3 font-figures text-xs text-ink-soft">
                     {c.verificationId ?? "—"}
                   </td>
-                  <td className="px-4 py-3">
-                    <KycReviewActions uid={c.uid} />
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/kyc/${c.uid}`}
+                      className="text-sm text-coffee hover:underline"
+                    >
+                      Review
+                    </Link>
                   </td>
                 </tr>
               ))}

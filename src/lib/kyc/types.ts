@@ -43,6 +43,7 @@ export interface ClientKyc {
   kycStatus: KycStatus;
   metamapVerdict: MetamapVerdict | null;
   verificationId: string | null;
+  metamapResource: string | null;
   reviewedBy: string | null;
   rejectionReason: string | null;
 }

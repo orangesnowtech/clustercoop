@@ -4,6 +4,7 @@ import { formatKobo } from "@/lib/money";
 import { computeAvailableKobo } from "@/lib/withdrawals/available";
 import { getClientWithdrawals, getLiveWithdrawals } from "@/lib/withdrawals/queries";
 import { getClientKyc } from "@/lib/kyc/queries";
+import { getVerifiedBank } from "@/lib/clients/profile";
 import { KycGate } from "@/components/kyc/KycGate";
 import { WithdrawForm } from "@/components/withdrawal/WithdrawForm";
 import { WithdrawalActions } from "@/components/withdrawal/WithdrawalActions";
@@ -18,11 +19,12 @@ const statusStyles: Record<string, string> = {
 
 export default async function WithdrawPage() {
   const user = await requireRole(["customer"]);
-  const [{ balanceKobo }, live, withdrawals, kyc] = await Promise.all([
+  const [{ balanceKobo }, live, withdrawals, kyc, bank] = await Promise.all([
     getClientLedger(user.uid),
     getLiveWithdrawals(user.uid),
     getClientWithdrawals(user.uid),
     getClientKyc(user.uid),
+    getVerifiedBank(user.uid),
   ]);
   const availableKobo = computeAvailableKobo(balanceKobo, live);
 
@@ -56,7 +58,7 @@ export default async function WithdrawPage() {
         <h2 className="mb-4 font-display text-lg font-semibold text-ink">
           New request
         </h2>
-        <WithdrawForm />
+        <WithdrawForm bank={bank} />
       </section>
 
       <section className="rounded-2xl border border-border bg-white p-6">

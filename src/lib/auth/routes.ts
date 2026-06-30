@@ -19,6 +19,7 @@ export interface RouteGuard {
 export const ROUTE_GUARDS: RouteGuard[] = [
   { prefix: "/admin", roles: STAFF_ROLES },
   { prefix: "/dashboard", roles: ["customer"] },
+  { prefix: "/onboarding", roles: ["customer"] },
 ];
 
 /** Auth pages — redirect away if already signed in. */
