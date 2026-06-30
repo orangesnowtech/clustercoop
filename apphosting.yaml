@@ -1,7 +1,8 @@
 # Firebase App Hosting config.
-# Secret NAMES are identical across the TEST and LIVE Firebase projects; the
-# VALUES stored in each project's Secret Manager differ (test keys vs live keys).
-# Set each with: firebase apphosting:secrets:set <NAME>  (in both projects).
+# Secrets live in Google Cloud Secret Manager; set each with:
+#   firebase apphosting:secrets:set <NAME>
+# Admin SDK uses the runtime service account (Application Default Credentials) —
+# no FIREBASE_SERVICE_ACCOUNT secret needed.
 #
 # Convention: NEXT_PUBLIC_* are browser-safe → availability [BUILD, RUNTIME];
 # server-only secrets → availability [RUNTIME] only (never in the browser bundle).
@@ -9,6 +10,17 @@ runConfig:
   minInstances: 0
 
 env:
+  # --- KYC gates (config, not secret) ---
+  - variable: DEPOSITS_REQUIRE_KYC
+    value: "true"
+    availability: [RUNTIME]
+  - variable: WITHDRAWALS_REQUIRE_KYC
+    value: "true"
+    availability: [RUNTIME]
+  - variable: INVESTMENTS_REQUIRE_KYC
+    value: "true"
+    availability: [RUNTIME]
+
   # --- Firebase (browser-safe) ---
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     secret: NEXT_PUBLIC_FIREBASE_API_KEY
@@ -28,11 +40,6 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
     secret: NEXT_PUBLIC_FIREBASE_APP_ID
     availability: [BUILD, RUNTIME]
-
-  # --- Firebase Admin (server-only) ---
-  - variable: FIREBASE_SERVICE_ACCOUNT
-    secret: FIREBASE_SERVICE_ACCOUNT
-    availability: [RUNTIME]
 
   # --- Paystack ---
   - variable: PAYSTACK_SECRET_KEY
@@ -60,9 +67,8 @@ env:
   - variable: NEXT_PUBLIC_METAMAP_FLOW_ID
     secret: NEXT_PUBLIC_METAMAP_FLOW_ID
     availability: [BUILD, RUNTIME]
-  - variable: METAMAP_CLIENT_SECRET
-    secret: METAMAP_CLIENT_SECRET
-    availability: [RUNTIME]
   - variable: METAMAP_WEBHOOK_SECRET
     secret: METAMAP_WEBHOOK_SECRET
     availability: [RUNTIME]
+  # METAMAP_CLIENT_SECRET intentionally omitted (blank) — add when provided to
+  # enable the compliance MetaMap auto-fetch.

@@ -25,8 +25,9 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage, type Storage } from "firebase-admin/storage";
 
-function getServiceAccount(): ServiceAccount {
-  // Priority 1: the env var (how production/App Hosting supplies it).
+/** Explicit service-account credential (env JSON or local file), or null. */
+function getExplicitServiceAccount(): ServiceAccount | null {
+  // Priority 1: the env var (a way to supply credentials explicitly).
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (raw) {
     try {
@@ -38,25 +39,23 @@ function getServiceAccount(): ServiceAccount {
       );
     }
   }
-
-  // Priority 2 (local dev only): a gitignored firebaseServiceAccountKey.json
-  // at the project root. Never present in production.
+  // Priority 2 (local dev): a gitignored firebaseServiceAccountKey.json.
   try {
     const file = join(process.cwd(), "firebaseServiceAccountKey.json");
     return JSON.parse(readFileSync(file, "utf8")) as ServiceAccount;
   } catch {
-    throw new Error(
-      "No Firebase admin credentials found. Set FIREBASE_SERVICE_ACCOUNT " +
-        "(Secret Manager / env) or place firebaseServiceAccountKey.json at the " +
-        "project root for local dev. It must never be NEXT_PUBLIC_.",
-    );
+    return null;
   }
 }
 
 function getAdminApp(): App {
-  return getApps().length
-    ? getApp()
-    : initializeApp({ credential: cert(getServiceAccount()) });
+  if (getApps().length) return getApp();
+  const explicit = getExplicitServiceAccount();
+  // Explicit creds locally; Application Default Credentials on App Hosting
+  // (the runtime service account has Firebase access — no key to embed).
+  return explicit
+    ? initializeApp({ credential: cert(explicit) })
+    : initializeApp();
 }
 
 export function getAdminAuth(): Auth {
