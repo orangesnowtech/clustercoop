@@ -45,13 +45,17 @@ Cluster is a **double-entry** system. Do not shortcut this into a single-entry t
 Firebase App Hosting deploys automatically on a git push to a connected branch.
 **There is no separate deploy command. Pushing = Deploying.**
 
-**Repository:** `<<FILL: GitHub repo URL (main app)>>`
+**Repository:** `https://github.com/orangesnowtech/clustercoop.git`
 
-| Branch | Deploys To | Firebase Project |
-|--------|-----------|-----------------|
-| `master` | No auto-deploy — all work done here | — |
-| `test` | Staging / test server | `<<FILL: TEST Firebase project ID>>` |
-| `live` | Production | `<<FILL: LIVE Firebase project ID>>` |
+| Branch | Deploys To | Firebase Project | App Hosting Backend |
+|--------|-----------|-----------------|---------------------|
+| `master` | No auto-deploy — all work done here | — | — |
+| `test` | Staging / test server | `cluster-staging-6ed81` | `clustercoop-backend` |
+| `live` | Production | `<<FILL: LIVE Firebase project ID>>` | `<<FILL: LIVE backend>>` |
+
+**Test URL:** `https://clustercoop-backend--cluster-staging-6ed81.europe-west4.hosted.app` (region europe-west4)
+
+> Deploy must be run as **corporatelandlords@gmail.com** (owner of the project). Admin SDK uses Application Default Credentials on App Hosting — no `FIREBASE_SERVICE_ACCOUNT` secret needed. Secrets live in Secret Manager (set via `firebase apphosting:secrets:set <NAME> --data-file -`, then `apphosting:secrets:grantaccess <NAMES> --backend clustercoop-backend --location europe-west4`).
 
 ### Deployment Workflow (Follow Every Time)
 ```
@@ -68,7 +72,7 @@ Firebase App Hosting deploys automatically on a git push to a connected branch.
 
 ### Switching Firebase Projects Locally
 ```bash
-firebase use <<FILL: TEST Firebase project ID>>   # switch to test
+firebase use cluster-staging-6ed81            # switch to test/staging
 firebase use <<FILL: LIVE Firebase project ID>>   # switch to live
 ```
 
