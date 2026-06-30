@@ -19,7 +19,7 @@ export function KycGate({ status }: { status: KycStatus }) {
       <p className="text-sm text-ink">{message}</p>
       {status !== "in_review" && (
         <Link
-          href="/dashboard/verify"
+          href="/dashboard/profile"
           className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-primary-pressed"
         >
           Verify now

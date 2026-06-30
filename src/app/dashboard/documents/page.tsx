@@ -1,7 +1,6 @@
-import { Placeholder } from "@/components/Placeholder";
+import { redirect } from "next/navigation";
 
-export default function DocumentsPage() {
-  return (
-    <Placeholder title="Documents" description="Your account documents." />
-  );
+// Documents moved into the Profile hub.
+export default function DocumentsRedirect() {
+  redirect("/dashboard/profile");
 }

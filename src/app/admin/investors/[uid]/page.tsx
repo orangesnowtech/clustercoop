@@ -7,6 +7,7 @@ import { getClientStatement } from "@/lib/statements/statement";
 import { getClientLedger } from "@/lib/ledger/statements";
 import { getClientHoldings } from "@/lib/investments/holdings";
 import { listProducts } from "@/lib/products/products";
+import { listClientDocuments } from "@/lib/documents/storage";
 import { formatKobo, sumKobo } from "@/lib/money";
 import { StatementTable } from "@/components/statement/StatementTable";
 import { DownloadStatementButton } from "@/components/statement/DownloadStatementButton";
@@ -28,13 +29,15 @@ export default async function InvestorDetailPage({
   // RM scoping: only assigned clients are viewable.
   if (!(await canViewClient(user, uid))) notFound();
 
-  const [client, { rows }, { balanceKobo }, holdings, products] = await Promise.all([
-    getClient(uid),
-    getClientStatement(uid),
-    getClientLedger(uid),
-    getClientHoldings(uid),
-    listProducts(),
-  ]);
+  const [client, { rows }, { balanceKobo }, holdings, products, documents] =
+    await Promise.all([
+      getClient(uid),
+      getClientStatement(uid),
+      getClientLedger(uid),
+      getClientHoldings(uid),
+      listProducts(),
+      listClientDocuments(uid),
+    ]);
   const nameById = new Map(products.map((p) => [p.id, p.name]));
   const investedKobo = sumKobo(holdings.map((h) => h.currentValueKobo));
   const kyc = client?.kycStatus ?? "pending";
@@ -98,6 +101,31 @@ export default async function InvestorDetailPage({
                 </li>
               );
             })}
+          </ul>
+        </section>
+      )}
+
+      {documents.length > 0 && (
+        <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-white">
+          <h2 className="px-4 py-3 font-display text-lg font-semibold text-ink">
+            Documents
+          </h2>
+          <ul className="divide-y divide-border/60 px-4 pb-2 text-sm">
+            {documents.map((d) => (
+              <li key={d.path} className="flex items-center justify-between py-2">
+                <a
+                  href={d.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-coffee hover:underline"
+                >
+                  {d.name}
+                </a>
+                <span className="font-figures text-xs text-ink-soft">
+                  {Math.round(d.sizeBytes / 1024)} KB
+                </span>
+              </li>
+            ))}
           </ul>
         </section>
       )}

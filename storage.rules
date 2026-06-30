@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Client documents live under client-documents/<uid>/. A client may read,
+// upload and delete ONLY their own folder (max 10 MB/file). Staff access
+// client documents server-side via the Admin SDK (which bypasses these rules),
+// gated by canViewClient — so no staff rule is needed here. Everything else
+// is locked.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /client-documents/{uid}/{allPaths=**} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
